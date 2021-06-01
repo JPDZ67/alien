@@ -4,11 +4,12 @@ from alien.ufo_scrapper import Scrapper
 from alien.datetime_cleanup import datetime_cleanup
 from alien.duration_cleanup import duration_cleanup
 
-LOCAL_MASTER_PATH = '../raw_data/sightings.csv'
+LOCAL_MASTER_PATH = '/Users/juan/code/Polanket/alien/raw_data/sightings.csv'
 
 
 def get_data(ignore_new=True):
-    main_df = clean_data(pd.csv_read(LOCAL_MASTER_PATH))
+    data = pd.read_csv(LOCAL_MASTER_PATH)
+    main_df = clean_data(data)
 
     if ignore_new:
         return main_df
@@ -58,3 +59,7 @@ def drop_null_values(df):
     """Drops NaN values"""
     df.dropna(inplace=True)
 
+
+if __name__ == "__main__":
+    data = get_data(ignore_new=True)
+    print(data.head())
