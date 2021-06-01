@@ -41,7 +41,8 @@ class Scrapper:
     def get_sightings(self, links):
         """Internal - Navigates to report pages and extracts sightings content"""
         for link in links:
-            page = self.extract_html(f"{self.base_url}{link}")
+            print(f"Extracting data from - {link}")
+            page = self._extract_html(f"{self.base_url}{link}")
             rows = page.xpath('//tr')
 
             for row in range(1, len(rows)):

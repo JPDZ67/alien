@@ -61,5 +61,5 @@ def drop_null_values(df):
 
 
 if __name__ == "__main__":
-    data = get_data(ignore_new=True)
+    data = get_data(ignore_new=False)
     print(data.head())
