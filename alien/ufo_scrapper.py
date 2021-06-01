@@ -10,20 +10,24 @@ class Scrapper:
         self.sightings = []
 
     def run(self):
-        html = self.extract_html(self.reports_url)
-        links = self.extract_links(html)
+        """Returns a df with the scrapped data from the website and saves it into a csv"""
+        html = self._extract_html(self.reports_url)
+        links = self._extract_links(html)
         self.get_sightings(links)
         return self.sightings_df()
 
-    def extract_html(self, url):
+    def _extract_html(self, url):
+        """Internal - Extracts html document from a url"""
         page = requests.get(url)
         return lh.fromstring(page.content)
 
-    def extract_links(self, html):
+    def _extract_links(self, html):
+        """Internal - Extracts source href from html a tags"""
         report_links = html.xpath('//tr')
-        return self.find_links(report_links)
+        return self._find_links(report_links)
 
-    def find_links(self, page_els):
+    def _find_links(self, page_els):
+        """Internal - Finds a (link) elements from html document"""
         a_els = []
         for item in page_els:
             a_els.append(item.xpath('//a'))
@@ -35,6 +39,7 @@ class Scrapper:
         return hrefs
 
     def get_sightings(self, links):
+        """Internal - Navigates to report pages and extracts sightings content"""
         for link in links:
             page = self.extract_html(f"{self.base_url}{link}")
             rows = page.xpath('//tr')
@@ -50,7 +55,8 @@ class Scrapper:
                 self.sightings.append(report)
 
     def sightings_df(self):
+        """Internal - Converts sightings to dataframe and saves them as csv"""
         df = pd.DataFrame(self.sightings,
-                            columns=['Datetime', 'City', 'State', 'Shape', 'Duration', 'Summary', 'Posted'])
+                          columns=['datetime', 'city', 'state', 'shape', 'duration (seconds)', 'comments', 'date posted'])
         df.to_csv('../raw_data/new_sightings.csv')
         return df
