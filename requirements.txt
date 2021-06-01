@@ -5,8 +5,8 @@ twine
 wheel>=0.29
 
 # data science
-numpy
-pandas
+numpy~=1.18.5
+pandas~=1.2.1
 scikit-learn
 nltk
 statsmodels
@@ -30,3 +30,4 @@ joblib
 memoized-property
 termcolor
 unidecode
+reverse_geocoder
