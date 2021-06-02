@@ -59,3 +59,12 @@ pypi_test:
 
 pypi:
 	@twine upload dist/* -u $(PYPI_USERNAME)
+
+# ----------------------------------
+#      		MODULE CODE
+# ----------------------------------
+PACKAGE_NAME=alien
+FILENAME=data
+
+get_data:
+	@python -m ${PACKAGE_NAME}.${FILENAME}
