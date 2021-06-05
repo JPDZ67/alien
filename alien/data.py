@@ -5,6 +5,8 @@ from alien.datetime_cleanup import datetime_cleanup
 from alien.duration_cleanup import duration_cleanup
 
 LOCAL_MASTER_PATH = '/Users/juan/code/Polanket/alien/raw_data/sightings.csv'
+CAT_FEATURES = ['state', 'shape']
+NUM_FEATURES = ['avg_duration(seconds)', 'sightings_cities', 'sightings', 'population']
 
 
 def get_data(ignore_new=True):
