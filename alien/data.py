@@ -19,9 +19,9 @@ def get_data(ignore_new=True):
 
 def clean_data(df, *main_df):
     clean = df.copy()
-    drop_extra_cols(clean) # Inplace
-    rename_cols(clean) # Might not be needed with next scrapping
-    drop_null_values(clean) # Inplace
+    drop_extra_cols(clean)  # Inplace
+    rename_cols(clean)  # Might not be needed with next scrapping
+    drop_null_values(clean)  # Inplace
     clean = datetime_cleanup(clean, main_df)
     clean = duration_cleanup(clean)
     return clean
@@ -45,14 +45,13 @@ def drop_extra_cols(df):
 
 def rename_cols(df):
     """Renames column names to match master df"""
-    df.rename(
-        columns={'Datetime': 'datetime',
-                 'City': 'city',
-                 'State': 'state',
-                 'Shape': 'shape',
-                 'Duration': 'duration (seconds)',
-                 'Summary': 'summary'},
-        inplace=True)
+    df.rename(columns={'Datetime': 'datetime',
+                       'City': 'city',
+                       'State': 'state',
+                       'Shape': 'shape',
+                       'Duration': 'duration (seconds)',
+                       'Summary': 'summary'},
+              inplace=True)
 
 
 def drop_null_values(df):
