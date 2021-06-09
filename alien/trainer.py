@@ -3,7 +3,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import Lasso, Ridge, LinearRegression
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV
 from termcolor import colored
 from alien.utils import compute_rmse
 from alien.encoders import TimeFeaturesEncoder
@@ -20,9 +20,17 @@ class Trainer(object):
         del X, y
         self.split = self.kwargs.get('split', True)
         if self.split:
-            self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train,
-                                                                                  test_size=0.15)
+            self.X_train, self.X_val, self.y_train, self.y_val = self.time_split(self.X_train, self.y_train, test_size=0.1)
         self.pipeline = None
+
+    def time_split(self, X, y, test_size=0.05):
+        test_rows = int(len(X) * test_size)
+        train_rows = len(X) - test_rows
+
+        print(f"X train size - {len(X[:train_rows])}")
+        print(f"X test size - {len(X[train_rows:])}")
+
+        return X[:train_rows], X[train_rows:], y[:train_rows], y[train_rows:]
 
     def get_estimator(self):
         estimator = self.kwargs.get('estimator')
@@ -33,7 +41,7 @@ class Trainer(object):
         elif estimator == "Linear":
             model = LinearRegression()
         elif estimator == "GBM":
-            model = GradientBoostingRegressor()
+            model = GradientBoostingRegressor(loss='huber', learning_rate=0.2, n_estimators=250)
         else:
             model = Lasso()
 
@@ -66,6 +74,7 @@ class Trainer(object):
     def train(self):
         self.set_pipeline()
         self.pipeline.fit(self.X_train, self.y_train)
+        print(self.pipeline.get_params())
 
     def evaluate(self):
         rmse_train = self.compute_rmse(self.X_train, self.y_train)
@@ -86,6 +95,24 @@ class Trainer(object):
         rmse = compute_rmse(y_pred, y_test)
         return round(rmse, 3)
 
+    def fine_tune(self):
+        self.set_pipeline()
+        pipe = self.pipeline
+        grid = GridSearchCV(pipe, verbose=3, param_grid={
+            'model__learning_rate': [0.05, 0.075, 0.1, 0.15, 0.2, 0.25, 0.3],
+            'model__loss': ['ls', 'huber', 'lad'],
+            #'model__max_depth': [1, 2, 3, 5, 6, 7, 8, 9, 10],
+            'model__max_features': ['auto', 'sqrt', 'log2'],
+            #'model__min_samples_leaf': [1, 2, 3, 4, 5],
+            #'model__min_samples_split': [1.0, 2, 3],
+            #'model__min_weight_fraction_leaf': [0.1, 0.5, 0.0],
+            'model__n_estimators': [50, 75, 100, 125, 150, 175, 200, 250],
+            #'model__subsample': [0.001, 0.01, 0.05, 0.1, 0.25, 0.5, 1.0],
+        })
+
+        grid.fit(self.X_train, self.y_train)
+        print(grid.best_params_)
+
 
 if __name__ == "__main__":
     params = dict(split=True,
@@ -105,3 +132,5 @@ if __name__ == "__main__":
     t.train()
     print(colored("############  Evaluating model ############", "blue"))
     t.evaluate()
+    #print(colored("############  Grid search model ############", "green"))
+    #t.fine_tune()
