@@ -65,6 +65,22 @@ pypi:
 # ----------------------------------
 PACKAGE_NAME=alien
 FILENAME=data
+LOCAL_DATA_PATH=/Users/juan/code/Polanket/alien/raw_data/merged_df.csv
+PROJECT_ID=data-science-313109
+BUCKET_NAME=ufo_sightings
+BUCKET_FOLDER=data
+
+set_project:
+	@gcloud config set project ${PROJECT_ID}
+
+upload_data:
+	@gsutil cp ${LOCAL_DATA_PATH} gs://${BUCKET_NAME}/${BUCKET_FOLDER}/${BUCKET_FILE_NAME}
 
 get_data:
 	@python -m ${PACKAGE_NAME}.${FILENAME}
+
+run_locally:
+	@python -m ${PACKAGE_NAME}.trainer
+
+run_api:
+	@uvicorn api.fast:app --reload

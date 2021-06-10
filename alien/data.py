@@ -7,10 +7,17 @@ from alien.duration_cleanup import duration_cleanup
 LOCAL_MASTER_PATH = '/Users/juan/code/Polanket/alien/raw_data/sightings.csv'
 CAT_FEATURES = ['state', 'shape']
 NUM_FEATURES = ['avg_duration(seconds)', 'sightings_cities', 'sightings', 'population']
+BUCKET_NAME = 'ufo_sightings'
+BUCKET_TRAIN_DATA_PATH = 'data/merged_df.csv'
+STORAGE_LOCATION = 'models/alien/model.joblib'
 
 
-def get_data(ignore_new=True):
-    data = pd.read_csv(LOCAL_MASTER_PATH)
+def get_data(ignore_new=True, local=False):
+    if local:
+        data = pd.read_csv(LOCAL_MASTER_PATH)
+    else:
+        data = pd.read_csv(f"gs://{BUCKET_NAME}/{BUCKET_TRAIN_DATA_PATH}")
+
     main_df = clean_data(data)
 
     if ignore_new:

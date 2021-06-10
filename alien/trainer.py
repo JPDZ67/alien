@@ -1,13 +1,16 @@
+import joblib
 import pandas as pd
+from google.cloud import storage
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.impute import SimpleImputer
+from sklearn.metrics import mean_absolute_error
 from sklearn.linear_model import Lasso, Ridge, LinearRegression
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, train_test_split
 from termcolor import colored
 from alien.utils import compute_rmse
 from alien.encoders import TimeFeaturesEncoder
-from alien.data import CAT_FEATURES, NUM_FEATURES
+from alien.data import CAT_FEATURES, NUM_FEATURES, BUCKET_NAME, BUCKET_TRAIN_DATA_PATH, STORAGE_LOCATION
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
@@ -20,7 +23,7 @@ class Trainer(object):
         del X, y
         self.split = self.kwargs.get('split', True)
         if self.split:
-            self.X_train, self.X_val, self.y_train, self.y_val = self.time_split(self.X_train, self.y_train, test_size=0.1)
+            self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train, test_size=0.2)#self.time_split(self.X_train, self.y_train, test_size=0.1)
         self.pipeline = None
 
     def time_split(self, X, y, test_size=0.05):
@@ -77,23 +80,10 @@ class Trainer(object):
         print(self.pipeline.get_params())
 
     def evaluate(self):
-        rmse_train = self.compute_rmse(self.X_train, self.y_train)
-        if self.split:
-            rmse_val = self.compute_rmse(self.X_val, self.y_val, show=True)
-            print(colored("rmse train: {} || rmse val: {}".format(rmse_train, rmse_val), "blue"))
-        else:
-            print(colored("rmse train: {}".format(rmse_train), "blue"))
+        y_pred = self.pipeline.predict(self.X_train)
+        abs_error = mean_absolute_error(self.y_train, y_pred)
 
-    def compute_rmse(self, X_test, y_test, show=False):
-        if self.pipeline is None:
-            raise ("Cannot evaluate an empty pipeline")
-        y_pred = self.pipeline.predict(X_test)
-        if show:
-            res = pd.DataFrame(y_test)
-            res["pred"] = y_pred
-            print(colored(res.sample(5), "blue"))
-        rmse = compute_rmse(y_pred, y_test)
-        return round(rmse, 3)
+        print(colored("Absolute error: {}".format(abs_error), "blue"))
 
     def fine_tune(self):
         self.set_pipeline()
@@ -112,6 +102,22 @@ class Trainer(object):
 
         grid.fit(self.X_train, self.y_train)
         print(grid.best_params_)
+
+    def upload_model_to_gcp(self):
+        client = storage.Client()
+
+        bucket = client.bucket(BUCKET_NAME)
+
+        blob = bucket.blob(STORAGE_LOCATION)
+
+        blob.upload_from_filename('model.joblib')
+
+    def save_model(self, model):
+        joblib.dump(model, 'model.joblib')
+        print(colored("--- Model Saved Locally", "green"))
+
+        self.upload_model_to_gcp()
+        print(colored("--- Model Saved to GCP", "blue"))
 
 
 if __name__ == "__main__":
