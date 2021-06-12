@@ -23,7 +23,7 @@ class Trainer(object):
         del X, y
         self.split = self.kwargs.get('split', True)
         if self.split:
-            self.X_train, self.X_val, self.y_train, self.y_val = self.time_split(self.X_train, self.y_train, test_size=0.1)#train_test_split(self.X_train, self.y_train, test_size=0.2)
+            self.X_train, self.X_val, self.y_train, self.y_val = self.time_split_by_state(self.X_train, self.y_train, test_size = 0.05)  # train_test_split(self.X_train, self.y_train, test_size=0.2)
         self.pipeline = None
 
     def time_split(self, X, y, test_size=0.05):
@@ -35,6 +35,25 @@ class Trainer(object):
 
         return X[:train_rows], X[train_rows:], y[:train_rows], y[train_rows:]
     
+    def time_split_by_state(self, X, y, test_size = 0.05):
+        df = pd.concat([X,y], axis=1)
+        states_ = list(df.state.unique())
+        df_X_train_aux = pd.DataFrame()
+        df_X_test_aux = pd.DataFrame()
+        df_y_train_aux = pd.DataFrame()
+        df_y_test_aux =pd.DataFrame()
+
+        for st_ in states_:
+            aux = df.loc[X.state == st_]
+            y = aux['sightings_t+1']
+            X = aux.drop('sightings_t+1', axis=1)
+            X_train X_test, y_train, y_test = time_split(self.X, self.y, test_size = 0.05)
+            df_X_train_aux = df_X_train_aux.append(X_train)
+            df_X_test_aux = df_X_test_aux.append(X_test)
+            df_y_train_aux = df_y_train_aux.append(y_train)
+            df_y_test_aux = df_y_test_aux.append(y_test)
+        
+        return df_X_train_aux, df_X_test_aux, df_y_train_aux, df_y_test_aux
     
 
     def get_estimator(self):
@@ -126,12 +145,12 @@ if __name__ == "__main__":
     params = dict(split=True,
                   estimator='GBM')
 
-    df = pd.read_csv('/Users/juan/code/Polanket/alien/raw_data/merged_df.csv')
+    df = pd.read_csv('/Users/vera/code/JPDZ67/alien/raw_data/final_df.csv')
     df.drop(columns=['year', 'season'],
             inplace=True,
             errors='ignore')
-    y = df['sightings_days']
-    X = df.drop('sightings_days', axis=1)
+    y = df['sightings_t+1']
+    X = df.drop('sightings_t+1', axis=1)
     del df
     t = Trainer(X=X, y=y, **params)
     del X, y
