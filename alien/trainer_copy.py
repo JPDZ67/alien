@@ -9,7 +9,7 @@ from sklearn.linear_model import Lasso, Ridge, LinearRegression
 from sklearn.model_selection import GridSearchCV, train_test_split
 from termcolor import colored
 from alien.utils import compute_rmse
-from alien.encoders import TimeFeaturesEncoder
+from alien.encoders import TimeFeaturesEncoder, DurationFeatureEncoder
 from alien.data import CAT_FEATURES, NUM_FEATURES, BUCKET_NAME, BUCKET_TRAIN_DATA_PATH, STORAGE_LOCATION
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
@@ -23,7 +23,7 @@ class Trainer(object):
         del X, y
         self.split = self.kwargs.get('split', True)
         if self.split:
-            self.X_train, self.X_val, self.y_train, self.y_val = self.time_split_by_state(self.X_train, self.y_train, test_size = 0.05)  # train_test_split(self.X_train, self.y_train, test_size=0.2)
+            self.X_train, self.X_val, self.y_train, self.y_val = self.time_split_by_state(self.X_train, self.y_train, test_size=0.05)  # train_test_split(self.X_train, self.y_train, test_size=0.2)
         self.pipeline = None
 
     def time_split(self, X, y, test_size=0.05):
@@ -35,7 +35,7 @@ class Trainer(object):
 
         return X[:train_rows], X[train_rows:], y[:train_rows], y[train_rows:]
     
-    def time_split_by_state(self, X, y, test_size = 0.05):
+    def time_split_by_state(self, X, y, test_size=0.05):
         df = pd.concat([X,y], axis=1)
         states_ = list(df.state.unique())
         df_X_train_aux = pd.DataFrame()
@@ -44,10 +44,10 @@ class Trainer(object):
         df_y_test_aux =pd.DataFrame()
 
         for st_ in states_:
-            aux = df.loc[X.state == st_]
+            aux = df.loc[df.state == st_]
             y = aux['sightings_t+1']
             X = aux.drop('sightings_t+1', axis=1)
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)#self.time_split(X, y, test_size=0.05)
+            X_train, X_test, y_train, y_test = self.time_split(X, y, test_size=0.05)
             df_X_train_aux = df_X_train_aux.append(X_train)
             df_X_test_aux = df_X_test_aux.append(X_test)
             df_y_train_aux = df_y_train_aux.append(y_train)
@@ -81,11 +81,15 @@ class Trainer(object):
 
         numerical_pipe = make_pipeline(StandardScaler())
 
+        duration_pipe = make_pipeline(DurationFeatureEncoder(),
+                                      StandardScaler())
+
         feateng_blocks = [
             ('datetime', datetime_pipe, ['year_season']),
             ('categorical', categorical_pipe, CAT_FEATURES),
             ('population', population_pipe, ['population']),
-            ('numerical', numerical_pipe, NUM_FEATURES)
+            ('numerical', numerical_pipe, NUM_FEATURES),
+            ('duration', duration_pipe, ['avg_duration(seconds)'])
         ]
 
         features_encoder = ColumnTransformer(feateng_blocks, remainder='drop')
@@ -146,6 +150,7 @@ if __name__ == "__main__":
                   estimator='GBM')
 
     df = pd.read_csv('/Users/juan/code/Polanket/alien/raw_data/final_df.csv')
+    df.dropna(inplace=True)
     df.drop(columns=['year', 'season'],
             inplace=True,
             errors='ignore')
