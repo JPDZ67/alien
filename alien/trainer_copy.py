@@ -47,7 +47,7 @@ class Trainer(object):
             aux = df.loc[X.state == st_]
             y = aux['sightings_t+1']
             X = aux.drop('sightings_t+1', axis=1)
-            X_train X_test, y_train, y_test = time_split(self.X, self.y, test_size = 0.05)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)#self.time_split(X, y, test_size=0.05)
             df_X_train_aux = df_X_train_aux.append(X_train)
             df_X_test_aux = df_X_test_aux.append(X_test)
             df_y_train_aux = df_y_train_aux.append(y_train)
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     params = dict(split=True,
                   estimator='GBM')
 
-    df = pd.read_csv('/Users/vera/code/JPDZ67/alien/raw_data/final_df.csv')
+    df = pd.read_csv('/Users/juan/code/Polanket/alien/raw_data/final_df.csv')
     df.drop(columns=['year', 'season'],
             inplace=True,
             errors='ignore')
