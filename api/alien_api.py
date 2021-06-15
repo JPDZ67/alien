@@ -2,6 +2,7 @@ import joblib
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
+import numpy as np
 
 api = FastAPI()
 
@@ -19,26 +20,15 @@ def index():
     return {"greeting": "Welcome to alien sightings api"}
 
 @api.get("/predict")
-def predict(state,
-            year_season,
-            avg_duration,
-            sightings_cities,
-            shape,
-            sightings_days,
-            year,
-            season,
-            population):
+def predict(state, season):
 
-    X = pd.DataFrame(dict(
-        state=[state],
-        year_season=[year_season],
-        avg_duration=[float(avg_duration)],
-        sightings_cities=[int(sightings_cities)],
-        shape=[shape],
-        sightings_days=[int(sightings_days)],
-        year=[int(year)],
-        season=[season],
-        population=[int(population)]))
+    data = pd.read_csv('/Users/juan/code/Polanket/alien/raw_data/final_df.csv')
+
+    print(data.head(1))
+
+    X = data.loc[np.logical_and(data['state'] == state, data['season_y'] == season)]
+
+    print(X.tail(1))
 
     # ⚠️ TODO: get model from GCP
 

@@ -83,4 +83,4 @@ run_locally:
 	@python -m ${PACKAGE_NAME}.trainer
 
 run_api:
-	@uvicorn api.fast:app --reload
+	@uvicorn api.alien_api:api --reload
