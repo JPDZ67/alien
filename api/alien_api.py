@@ -19,8 +19,6 @@ def index():
     return {"greeting": "Welcome to alien sightings api"}
 
 @api.get("/predict")
-state,year_season,sightings,avg_duration(seconds),sightings_cities,shape,sightings_days,year,season,population
-
 def predict(state,
             year_season,
             avg_duration,
