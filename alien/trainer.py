@@ -126,7 +126,8 @@ if __name__ == "__main__":
     params = dict(split=True,
                   estimator='GBM')
 
-    df = pd.read_csv('/Users/juan/code/Polanket/alien/raw_data/merged_df.csv')
+    df = pd.read_csv(
+        '/home/verabrizola/code/JPDZ67/alien/raw_data/merged_df.csv')
     df.drop(columns=['year', 'season'],
             inplace=True,
             errors='ignore')
