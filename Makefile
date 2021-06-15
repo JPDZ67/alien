@@ -65,7 +65,7 @@ pypi:
 # ----------------------------------
 PACKAGE_NAME=alien
 FILENAME=data
-LOCAL_DATA_PATH=/Users/juan/code/Polanket/alien/raw_data/merged_df.csv
+LOCAL_DATA_PATH=/Users/juan/code/Polanket/alien/raw_data/final_df.csv
 PROJECT_ID=data-science-313109
 BUCKET_NAME=ufo_sightings
 BUCKET_FOLDER=data
@@ -80,7 +80,7 @@ get_data:
 	@python -m ${PACKAGE_NAME}.${FILENAME}
 
 run_locally:
-	@python -m ${PACKAGE_NAME}.trainer_copy.py
+	@python -m ${PACKAGE_NAME}.trainer
 
 run_api:
 	@uvicorn api.fast:app --reload

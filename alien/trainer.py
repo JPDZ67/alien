@@ -114,8 +114,8 @@ class Trainer(object):
 
         blob.upload_from_filename('model.joblib')
 
-    def save_model(self, model):
-        joblib.dump(model, 'model.joblib')
+    def save_model(self):
+        joblib.dump(self.pipeline, 'model.joblib')
         print(colored("--- Model Saved Locally", "green"))
 
         self.upload_model_to_gcp()
@@ -140,5 +140,8 @@ if __name__ == "__main__":
     t.train()
     print(colored("############  Evaluating model ############", "blue"))
     t.evaluate()
+
+    t.save_model()
+    print(colored("############  Model Saved ############", "green"))
     #print(colored("############  Grid search model ############", "green"))
     #t.fine_tune()
