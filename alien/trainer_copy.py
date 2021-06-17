@@ -163,6 +163,6 @@ if __name__ == "__main__":
     print(colored("############  Training model   ############", "red"))
     t.train()
     print(colored("############  Evaluating model ############", "blue"))
-    t.evaluate()
+    #t.evaluate()
     #print(colored("############  Grid search model ############", "green"))
     #t.fine_tune()
