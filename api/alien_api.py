@@ -14,6 +14,9 @@ api.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+BUCKET_NAME = 'ufo_sightings'
+BUCKET_TRAIN_DATA_PATH = 'data/final_df.csv'
+
 
 @api.get("/")
 def index():
@@ -22,13 +25,20 @@ def index():
 @api.get("/predict")
 def predict(state, season):
 
-    data = pd.read_csv('/Users/juan/code/Polanket/alien/raw_data/final_df.csv')
+    data = pd.read_csv(f"gs://{BUCKET_NAME}/{BUCKET_TRAIN_DATA_PATH}")
 
     print(data.head(1))
 
     X = data.loc[np.logical_and(data['state'] == state, data['season_y'] == season)]
 
-    print(X.tail(1))
+    X.dropna(inplace=True)
+    X.drop(columns=['year_season'],
+           inplace=True,
+           errors='ignore')
+
+    X = X.drop('sightings_t+1', axis=1)
+
+    X = X.tail(1)
 
     # ⚠️ TODO: get model from GCP
 
@@ -42,3 +52,4 @@ def predict(state, season):
     pred = float(results[0])
 
     return dict(prediction=pred)
+
